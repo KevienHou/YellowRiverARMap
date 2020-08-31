@@ -19,7 +19,7 @@ namespace SpatialMap_SparseSpatialMap
         private MapSession.MapData mapData;
         private bool isTipsOn;
 
-        private void Awake()
+        private void Start()
         {
             PropDragger.CreateObject += (gameObj) =>
             {
@@ -37,6 +37,7 @@ namespace SpatialMap_SparseSpatialMap
                 }
             };
         }
+
 
         private void OnEnable()
         {

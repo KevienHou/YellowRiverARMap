@@ -41,6 +41,7 @@ namespace SpatialMap_SparseSpatialMap
                 controller.PointerDown += () =>
                 {
                     PropDragger.StartCreate(controller);
+
                 };
                 controller.PointerUp += PropDragger.StopCreate;
                 cells.Add(controller);

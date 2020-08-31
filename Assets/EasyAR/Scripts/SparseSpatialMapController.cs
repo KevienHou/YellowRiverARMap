@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+
 using UnityEngine;
 
 namespace easyar
@@ -42,6 +43,12 @@ namespace easyar
         /// <para xml:lang="zh">Map数据来源。</para>
         /// </summary>
         public DataSource SourceType;
+
+        /// <summary>
+        /// 生成对象props的父物体
+        /// </summary>
+        public Transform propsParent;
+
 
         /// <summary>
         /// <para xml:lang="en">MapManager source for map creation. Valid when <see cref="SourceType"/> == <see cref="DataSource.MapManager"/>.</para>
@@ -206,6 +213,7 @@ namespace easyar
         protected virtual void Awake()
         {
             PointCloud = new List<Vector3>();
+            propsParent = transform.Find("Props");
         }
 
         /// <summary>
@@ -349,7 +357,7 @@ namespace easyar
             {
                 return new Vector3(bufferFloat[k * 3], bufferFloat[k * 3 + 1], -bufferFloat[k * 3 + 2]);
             }).ToList();
-
+            Debug.Log(" SparseSpatialMapController  PointCloud:" + PointCloud.Count);
             UpdatePointCloud();
         }
 

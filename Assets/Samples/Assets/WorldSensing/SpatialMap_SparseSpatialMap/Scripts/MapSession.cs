@@ -17,12 +17,11 @@ namespace SpatialMap_SparseSpatialMap
 {
     public class MapSession : IDisposable
     {
-
-        public Action<MapData> currentMapData;
-
-
         public SparseSpatialMapWorkerFrameFilter MapWorker;
         public List<MapData> Maps = new List<MapData>();
+        public Action<MapData> CurrentMapLocalized;
+        public Action<MapData> CurrentMapStopLocalized;
+
 
         private SparseSpatialMapController builderMapController;
 
@@ -117,7 +116,6 @@ namespace SpatialMap_SparseSpatialMap
                         "load map will not trigger a download in this sample." + Environment.NewLine +
                         "Map cache is used (SparseSpatialMapManager.clear not called alone)." + Environment.NewLine +
                         "Statistical request count will not be increased (more details on EasyAR website).", 5);
-                    currentMapData?.Invoke(m);
                     foreach (var propInfo in meta.Props)
                     {
                         GameObject prop = null;
@@ -134,7 +132,7 @@ namespace SpatialMap_SparseSpatialMap
                             Debug.LogError("Missing prop templet: " + propInfo.Name);
                             continue;
                         }
-                        prop.transform.parent = controller.transform;
+                        prop.transform.parent = controller.propsParent;
                         prop.transform.localPosition = new UnityEngine.Vector3(propInfo.Position[0], propInfo.Position[1], propInfo.Position[2]);
                         prop.transform.localRotation = new Quaternion(propInfo.Rotation[0], propInfo.Rotation[1], propInfo.Rotation[2], propInfo.Rotation[3]);
                         prop.transform.localScale = new UnityEngine.Vector3(propInfo.Scale[0], propInfo.Scale[1], propInfo.Scale[2]);
@@ -145,19 +143,24 @@ namespace SpatialMap_SparseSpatialMap
 
                 controller.MapLocalized += () =>
                 {
-                    Debug.Log("\t定位成功");
+                    Debug.Log("\t定位成功  " + controller.MapManagerSource.Name);
+                    CurrentMapLocalized?.Invoke(m);
                     GUIPopup.EnqueueMessage("Localized map {name = " + controller.MapInfo.Name + "}", 3);
                     var parameter = controller.PointCloudParticleParameter;
                     parameter.StartColor = new Color32(11, 205, 255, 255);
                     controller.PointCloudParticleParameter = parameter;
+                    controller.propsParent.gameObject.SetActive(true);
                 };
                 controller.MapStopLocalize += () =>
                 {
-                    Debug.Log("\t定位结束");
+                    CurrentMapStopLocalized?.Invoke(m);
+                    Debug.Log("\t定位结束  " + controller.MapManagerSource.Name);
                     GUIPopup.EnqueueMessage("Stopped localize map {name = " + controller.MapInfo.Name + "}", 3);
                     var parameter = controller.PointCloudParticleParameter;
                     parameter.StartColor = new Color32(163, 236, 255, 255);
                     controller.PointCloudParticleParameter = parameter;
+                    controller.propsParent.gameObject.SetActive(false);
+
                 };
                 m.Controller = controller;
             }

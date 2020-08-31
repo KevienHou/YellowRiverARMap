@@ -11,6 +11,9 @@ using System.IO;
 using System.Net;
 using System.Threading;
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -79,6 +82,58 @@ namespace SpatialMap_SparseSpatialMap
         }
 
 
+
+        public static bool Save<T>(T data, MapMeta meta, FileNameType fileNameType = FileNameType.ID)
+        {
+            try
+            {
+                switch (fileNameType)
+                {
+                    case FileNameType.ID:
+                        //File.WriteAllText(GetPathTxt(meta.Map.ID + "_PointCloud"), JsonUtility.ToJson(data, true));
+                        File.WriteAllText(GetPathTxt(meta.Map.ID + "_PointCloud"), JsonConvert.SerializeObject(data));
+                        break;
+                    case FileNameType.Name:
+                        File.WriteAllText(GetPathTxt(meta.Map.Name + "_PointCloud"), JsonConvert.SerializeObject(data));
+                        break;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(e.Message);
+                return false;
+            }
+            return true;
+        }
+
+        public static bool Load_PointCloud<T>(ref T metas)
+        {
+            var dirRoot = GetRootPath();
+            try
+            {
+                foreach (var path in Directory.GetFiles(dirRoot, "*.txt"))
+                {
+                    try
+                    {
+                        metas = JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError(e.Message);
+                    }
+                }
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(e.Message);
+            }
+            return false;
+        }
+
+
+
+
         public static bool Delete(MapMeta meta)
         {
             if (!File.Exists(GetPath(meta.Map.ID)))
@@ -111,5 +166,11 @@ namespace SpatialMap_SparseSpatialMap
         {
             return GetRootPath() + "/" + id + ".meta";
         }
+
+        private static string GetPathTxt(string id)
+        {
+            return GetRootPath() + "/" + id + ".txt";
+        }
+
     }
 }

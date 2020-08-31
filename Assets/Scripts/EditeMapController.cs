@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+
 using Common;
+
 using easyar;
+
 using SpatialMap_SparseSpatialMap;
+
 using UnityEngine;
 using UnityEngine.Android;
 using UnityEngine.EventSystems;
@@ -20,12 +25,22 @@ public class EditeMapController : MonoBehaviour
 
     public Dragger PropDragger;
 
+    private VideoCameraDevice videoCamera;
+
+
     [SerializeField]
     private MapSession.MapData mapData;
 
 
     private void Awake()
     {
+
+        session = FindObjectOfType<ARSession>();
+        mapWorker = FindObjectOfType<SparseSpatialMapWorkerFrameFilter>();
+
+        videoCamera = session.GetComponentInChildren<VideoCameraDevice>();
+
+
 #if UNITY_EDITOR
         GameObject.Find("EasyAR_SparseSpatialMapWorker").SetActive(false);
 #endif
@@ -45,20 +60,31 @@ public class EditeMapController : MonoBehaviour
                 mapData.Props.Remove(gameObj);
             }
         };
+
+
+
+
     }
 
 
     private void Start()
     {
-        session = FindObjectOfType<ARSession>();
-        mapWorker = FindObjectOfType<SparseSpatialMapWorkerFrameFilter>();
 
         mapSession = new MapSession(mapWorker, MapMetaManager.LoadAll());
         mapSession.LoadMapMeta(mapTemp, true);
-        mapSession.currentMapData = (mapData) => { this.mapData = mapData; };
+        mapSession.CurrentMapLocalized = (mapData) => { this.mapData = mapData; };
+        //mapSession.CurrentMapStopLocalized = (mapData) => { };
+        videoCamera.DeviceOpened += () =>
+        {
+            if (videoCamera == null)
+            {
+                return;
+            }
+            videoCamera.FocusMode = CameraDeviceFocusMode.Continousauto;
+        };
+
 
 #if UNITY_EDITOR
-
 
         DebugObj();
 
@@ -69,6 +95,9 @@ public class EditeMapController : MonoBehaviour
 #if UNITY_EDITOR
     public int index = 0;
 #endif
+
+
+
 #if UNITY_EDITOR
     private void Update()
     {
@@ -82,6 +111,13 @@ public class EditeMapController : MonoBehaviour
     public void DebugObj()
     {
         mapData = mapSession.Maps[index];
+
+        pointCloudParticleParameter = new SparseSpatialMapController.ParticleParameter();
+
+        bool flag = MapMetaManager.Load_PointCloud(ref PointCloud);
+        if (flag)
+            UpdatePointCloud(PointCloud);
+
         GameObject controller = GameObject.Find("ObjParents");
         if (controller == null)
         {
@@ -112,7 +148,49 @@ public class EditeMapController : MonoBehaviour
         }
     }
 
+    public ParticleSystem PointCloudParticleSystem;
+    SparseSpatialMapController.ParticleParameter pointCloudParticleParameter;
+
+
+    private void UpdatePointCloud(List<Vector3> PointCloud)
+    {
+        Debug.Log(PointCloud.Count);
+        if (!PointCloudParticleSystem)
+        {
+            return;
+        }
+
+        if (PointCloud == null)
+        {
+            PointCloudParticleSystem.Clear();
+            return;
+        }
+
+        var particles = PointCloud.Select(p =>
+        {
+            var particle = new ParticleSystem.Particle();
+            particle.position = p;
+            particle.startLifetime = pointCloudParticleParameter.StartLifetime;
+            particle.remainingLifetime = pointCloudParticleParameter.RemainingLifetime;
+            particle.startSize = pointCloudParticleParameter.StartSize;
+            particle.startColor = pointCloudParticleParameter.StartColor;
+            return particle;
+        }).ToArray();
+        PointCloudParticleSystem.SetParticles(particles, particles.Length);
+    }
+
 #endif
+
+
+    List<Vector3> PointCloud;
+
+
+    public void SavePoint()
+    {
+        Debug.Log(mapData.Controller.PointCloud.Count);
+        MapMetaManager.Save(mapData.Controller.PointCloud, mapData.Meta, MapMetaManager.FileNameType.Name);
+    }
+
 
 
 

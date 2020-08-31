@@ -49,28 +49,18 @@ namespace SpatialMap_SparseSpatialMap
             var isEditorOrStandalone = Application.isEditor || Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.OSXPlayer;
             var isPointerOverGameObject = (isEditorOrStandalone && EventSystem.current.IsPointerOverGameObject()) || (Input.touchCount > 0 && EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId));
 
-            //Debug.Log("                 candidate  : " + candidate);
-            //Debug.Log("                 isEditorOrStandalone : " + isEditorOrStandalone);
-            //Debug.Log("                 qian : " + (isEditorOrStandalone && EventSystem.current.IsPointerOverGameObject()));
-            //Debug.Log("                 hou : " + (Input.touchCount > 0 && EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId)));
-
-
             if (candidate)
             {
-                //Debug.Log("                 mapSession != null : " + (mapSession != null));
-                //Debug.Log("                 !isPointerOverGameObject : " + !isPointerOverGameObject);
-                //Debug.Log("                 Input.touchCount > 0 : " + (Input.touchCount > 0));
                 if (mapSession != null && !isPointerOverGameObject && Input.touchCount > 0)
                 {
                     var point = mapSession.HitTestOne(new Vector2(Input.touches[0].position.x / Screen.width, Input.touches[0].position.y / Screen.height));
-                    //Debug.Log("                 point.OnSome : " + point.OnSome);
+
                     if (point.OnSome)
                     {
                         candidate.transform.position = point.Value + Vector3.up * candidate.transform.localScale.y / 2;
                         isOnMap = true;
                     }
                 }
-                //Debug.Log("                 !isOnMap : " + !isOnMap);
                 if (isPointerOverGameObject || !isOnMap)
                 {
                     HideCandidate();
@@ -143,6 +133,8 @@ namespace SpatialMap_SparseSpatialMap
 
         public void StartCreate(PropCellController controller)
         {
+            Debug.Log("                 select :" + controller.name);
+
             StopEdit();
             isOnMap = false;
             rectTransform.sizeDelta = controller.GetComponent<RectTransform>().sizeDelta;
@@ -156,21 +148,27 @@ namespace SpatialMap_SparseSpatialMap
                 if (video) { video.Playable = false; }
             }
             FreeMove.SetActive(false);
+            Debug.Log("                 Instantiate :" + controller.name);
+
             HideCandidate();
         }
 
         public void StopCreate()
         {
+            Debug.Log("                 candidate.activeSelf :" + candidate.activeSelf);
             if (candidate.activeSelf)
             {
+                Debug.Log("                 CreateObject != null :" + (CreateObject != null));
                 if (CreateObject != null)
                 {
                     CreateObject(candidate);
+            
                     StartEdit(candidate);
                 }
             }
             else
             {
+                Debug.Log("                 Destroy :" + candidate.name);
                 Destroy(candidate);
             }
 
@@ -182,6 +180,7 @@ namespace SpatialMap_SparseSpatialMap
 
         public void StartEdit(GameObject obj)
         {
+            Debug.Log("                 StartEdit :" + obj.name);
             selection = obj;
             if (selection && VideoPlayable.isOn)
             {
@@ -202,7 +201,7 @@ namespace SpatialMap_SparseSpatialMap
                 OutlinePrefab.GetComponent<MeshFilter>().mesh = meshFilter.mesh;
                 OutlinePrefab.transform.parent = meshFilter.transform;
             }
-           
+
             OutlinePrefab.transform.localPosition = Vector3.zero;
             OutlinePrefab.transform.localRotation = Quaternion.identity;
             OutlinePrefab.transform.localScale = Vector3.one;
@@ -227,6 +226,8 @@ namespace SpatialMap_SparseSpatialMap
             {
                 touchControl.TurnOff();
             }
+            Debug.Log("                 clear last");
+
         }
 
         public void DeleteSelection()
@@ -254,14 +255,12 @@ namespace SpatialMap_SparseSpatialMap
 
         private void ShowCandidate()
         {
-            //Debug.Log("Show");
             dummy.gameObject.SetActive(false);
             candidate.SetActive(true);
         }
 
         private void HideCandidate()
         {
-            //Debug.Log("Hide");
             candidate.SetActive(false);
             dummy.gameObject.SetActive(true);
         }

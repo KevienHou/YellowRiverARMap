@@ -7,7 +7,7 @@ using easyar;
 
 using SpatialMap_SparseSpatialMap;
 
-using UnityEngine; 
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -24,20 +24,35 @@ public class LoadMapController : MonoBehaviour
 
     List<SparseSpatialMapController> MapControllers = new List<SparseSpatialMapController>();
 
+    private VideoCameraDevice videoCamera;
+
     private void Awake()
     {
 #if UNITY_EDITOR
         GameObject.FindObjectOfType<VIOCameraDeviceUnion>().enabled = false;
 #endif
+        session = FindObjectOfType<ARSession>();
+        mapWorker = FindObjectOfType<SparseSpatialMapWorkerFrameFilter>();
+        videoCamera = session.GetComponentInChildren<VideoCameraDevice>();
+
     }
 
 
     private void Start()
     {
-        session = FindObjectOfType<ARSession>();
-        mapWorker = FindObjectOfType<SparseSpatialMapWorkerFrameFilter>();
+  
         mapSession = new MapSession(mapWorker, MapMetaManager.LoadAll());
         mapSession.LoadMapMeta(mapTemp, false);
+
+        videoCamera.DeviceOpened += () =>
+        {
+            if (videoCamera == null)
+            {
+                return;
+            }
+            videoCamera.FocusMode = CameraDeviceFocusMode.Continousauto;
+        };
+
     }
 
     private void LoadMeta(List<MapMeta> mapMetas)
