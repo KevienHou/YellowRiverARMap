@@ -30,17 +30,15 @@ public class EditeMapController : MonoBehaviour
 
     [SerializeField]
     private MapSession.MapData mapData;
-
+    private PointData pointData;
+    private List<PointData> pointDatas = new List<PointData>();
 
     private void Awake()
     {
 
         session = FindObjectOfType<ARSession>();
         mapWorker = FindObjectOfType<SparseSpatialMapWorkerFrameFilter>();
-
         videoCamera = session.GetComponentInChildren<VideoCameraDevice>();
-
-
 #if UNITY_EDITOR
         GameObject.Find("EasyAR_SparseSpatialMapWorker").SetActive(false);
 #endif
@@ -72,7 +70,14 @@ public class EditeMapController : MonoBehaviour
 
         mapSession = new MapSession(mapWorker, MapMetaManager.LoadAll());
         mapSession.LoadMapMeta(mapTemp, true);
-        mapSession.CurrentMapLocalized = (mapData) => { this.mapData = mapData; };
+        mapSession.CurrentMapLoad = (mapData) =>
+        {
+            pointDatas.Add(new PointData() { mapName = mapData.Meta.Map.Name, PointCloud = mapData.Controller.PointCloud });
+        };
+        mapSession.CurrentMapLocalized = (mapData) =>
+        {
+            this.mapData = mapData;
+        };
         //mapSession.CurrentMapStopLocalized = (mapData) => { };
         videoCamera.DeviceOpened += () =>
         {
@@ -85,9 +90,7 @@ public class EditeMapController : MonoBehaviour
 
 
 #if UNITY_EDITOR
-
         DebugObj();
-
 #endif
         PropDragger.SetMapSession(mapSession);
     }
@@ -95,8 +98,6 @@ public class EditeMapController : MonoBehaviour
 #if UNITY_EDITOR
     public int index = 0;
 #endif
-
-
 
 #if UNITY_EDITOR
     private void Update()
@@ -111,12 +112,8 @@ public class EditeMapController : MonoBehaviour
     public void DebugObj()
     {
         mapData = mapSession.Maps[index];
-
-        pointCloudParticleParameter = new SparseSpatialMapController.ParticleParameter();
-
-        bool flag = MapMetaManager.Load_PointCloud(ref PointCloud);
-        if (flag)
-            UpdatePointCloud(PointCloud);
+        pointDatas = MapMetaManager.Load_PointCloud<PointData>();
+        UpdatePointCloud(GetCurrentPointData);
 
         GameObject controller = GameObject.Find("ObjParents");
         if (controller == null)
@@ -149,24 +146,25 @@ public class EditeMapController : MonoBehaviour
     }
 
     public ParticleSystem PointCloudParticleSystem;
-    SparseSpatialMapController.ParticleParameter pointCloudParticleParameter;
+    SparseSpatialMapController.ParticleParameter pointCloudParticleParameter = new SparseSpatialMapController.ParticleParameter() { StartSize = 0.02f };
 
 
-    private void UpdatePointCloud(List<Vector3> PointCloud)
+    private void UpdatePointCloud(PointData PointData)
     {
-        Debug.Log(PointCloud.Count);
-        if (!PointCloudParticleSystem)
-        {
-            return;
-        }
-
-        if (PointCloud == null)
+        if (string.IsNullOrEmpty(PointData.mapName))
         {
             PointCloudParticleSystem.Clear();
             return;
         }
 
-        var particles = PointCloud.Select(p =>
+        Debug.Log(PointData.PointCloud.Count);
+
+        if (!PointCloudParticleSystem)
+        {
+            return;
+        }
+
+        var particles = PointData.PointCloud.Select(p =>
         {
             var particle = new ParticleSystem.Particle();
             particle.position = p;
@@ -179,11 +177,18 @@ public class EditeMapController : MonoBehaviour
         PointCloudParticleSystem.SetParticles(particles, particles.Length);
     }
 
+    private PointData GetCurrentPointData
+    {
+        get
+        {
+            return pointDatas.Find(a => a.mapName == mapData.Meta.Map.Name);
+        }
+    }
+
+
+
+
 #endif
-
-
-    List<Vector3> PointCloud;
-
 
     public void SavePoint()
     {
@@ -200,9 +205,7 @@ public class EditeMapController : MonoBehaviour
         {
             return;
         }
-
         var propInfos = new List<MapMeta.PropInfo>();
-
         foreach (var prop in mapData.Props)
         {
             var position = prop.transform.localPosition;
@@ -218,7 +221,6 @@ public class EditeMapController : MonoBehaviour
             });
         }
         mapData.Meta.Props = propInfos;
-
         MapMetaManager.Save(mapData.Meta, MapMetaManager.FileNameType.Name);
         Debug.Log("保存成功");
     }
@@ -240,11 +242,16 @@ public class EditeMapController : MonoBehaviour
         }
     }
 
-
     private void OnDestroy()
     {
         DestroySession();
     }
-
-
 }
+
+
+public struct PointData
+{
+    public string mapName;
+    public List<Vector3> PointCloud;
+}
+

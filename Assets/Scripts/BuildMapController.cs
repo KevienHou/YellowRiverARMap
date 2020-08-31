@@ -114,7 +114,7 @@ public class BuildMapController : MonoBehaviour
             PlayerPrefs.SetString("MapID", mapInfo.ID);
             PlayerPrefs.SetString("MapName", mapInfo.Name);
             text.text = "地图保存成功。\r\nMapID：" + mapInfo.ID + "\r\nMapName：" + mapInfo.Name;
-            MapMetaManager.Save(new MapMeta(mapInfo, new List<MapMeta.PropInfo>()));
+            MapMetaManager.Save(new MapMeta(mapInfo, new List<MapMeta.PropInfo>()), MapMetaManager.FileNameType.Name);
             Invoke("BackMain", 3);
         }
         else

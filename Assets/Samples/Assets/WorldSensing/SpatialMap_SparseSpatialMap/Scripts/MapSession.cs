@@ -19,6 +19,7 @@ namespace SpatialMap_SparseSpatialMap
     {
         public SparseSpatialMapWorkerFrameFilter MapWorker;
         public List<MapData> Maps = new List<MapData>();
+        public Action<MapData> CurrentMapLoad;
         public Action<MapData> CurrentMapLocalized;
         public Action<MapData> CurrentMapStopLocalized;
 
@@ -88,7 +89,6 @@ namespace SpatialMap_SparseSpatialMap
                 MapWorker.LocalizerConfig.LocalizationMode = LocalizationMode.KeepUpdate;
             }
 
-
             foreach (var m in Maps)
             {
                 var meta = m.Meta;
@@ -105,6 +105,8 @@ namespace SpatialMap_SparseSpatialMap
                        "\t下载信息：" +
                        "\t名称" + map.Name +
                        "\tID" + map.ID + Environment.NewLine);
+
+                    CurrentMapLoad?.Invoke(m);
 
                     GUIPopup.EnqueueMessage("Load map {name = " + map.Name + ", id = " + map.ID + "} into " + MapWorker.name + Environment.NewLine +
                         " => " + status + (string.IsNullOrEmpty(error) ? "" : " <" + error + ">"), status ? 3 : 5);

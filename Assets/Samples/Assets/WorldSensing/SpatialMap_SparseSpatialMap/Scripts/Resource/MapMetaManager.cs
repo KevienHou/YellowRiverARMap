@@ -106,29 +106,29 @@ namespace SpatialMap_SparseSpatialMap
             return true;
         }
 
-        public static bool Load_PointCloud<T>(ref T metas)
+        public static List<PointData> Load_PointCloud<PointData>()
         {
             var dirRoot = GetRootPath();
+            var datas = new List<PointData>();
             try
             {
                 foreach (var path in Directory.GetFiles(dirRoot, "*.txt"))
                 {
                     try
                     {
-                        metas = JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
+                        datas.Add(JsonConvert.DeserializeObject<PointData>(File.ReadAllText(path)));
                     }
                     catch (System.Exception e)
                     {
                         Debug.LogError(e.Message);
                     }
                 }
-                return true;
             }
             catch (System.Exception e)
             {
                 Debug.LogError(e.Message);
             }
-            return false;
+            return datas;
         }
 
 
