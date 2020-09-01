@@ -30,8 +30,6 @@ public class EditeMapController : MonoBehaviour
 
     [SerializeField]
     private MapSession.MapData mapData;
-    private PointData pointData;
-    private List<PointData> pointDatas = new List<PointData>();
 
     private void Awake()
     {
@@ -39,6 +37,7 @@ public class EditeMapController : MonoBehaviour
         session = FindObjectOfType<ARSession>();
         mapWorker = FindObjectOfType<SparseSpatialMapWorkerFrameFilter>();
         videoCamera = session.GetComponentInChildren<VideoCameraDevice>();
+
 #if UNITY_EDITOR
         GameObject.Find("EasyAR_SparseSpatialMapWorker").SetActive(false);
 #endif
@@ -70,10 +69,8 @@ public class EditeMapController : MonoBehaviour
 
         mapSession = new MapSession(mapWorker, MapMetaManager.LoadAll());
         mapSession.LoadMapMeta(mapTemp, true);
-        mapSession.CurrentMapLoad = (mapData) =>
-        {
-            pointDatas.Add(new PointData() { mapName = mapData.Meta.Map.Name, PointCloud = mapData.Controller.PointCloud });
-        };
+
+        //mapSession.CurrentMapLoad = (mapData) => { };
         mapSession.CurrentMapLocalized = (mapData) =>
         {
             this.mapData = mapData;
@@ -90,37 +87,59 @@ public class EditeMapController : MonoBehaviour
 
 
 #if UNITY_EDITOR
-        DebugObj();
+        dataDropdown.gameObject.SetActive(true);
+        InitPointData();
 #endif
         PropDragger.SetMapSession(mapSession);
     }
 
 #if UNITY_EDITOR
-    public int index = 0;
-#endif
 
-#if UNITY_EDITOR
-    private void Update()
+    [HideInInspector]
+    public List<PointData> pointDatas = new List<PointData>();
+    GameObject controller;
+    public Dropdown dataDropdown;
+    List<Dropdown.OptionData> OptionDataList = new List<Dropdown.OptionData>();
+
+
+
+    public void InitPointData()
     {
-        if (index < mapSession.Maps.Count && Input.GetKeyDown(KeyCode.P))
+        pointDatas = MapMetaManager.Load_PointCloud<PointData>();
+        foreach (var item in pointDatas)
         {
-            DebugObj();
+            OptionDataList.Add(new Dropdown.OptionData() { text = item.mapName });
         }
+        dataDropdown.options = OptionDataList;
+        dataDropdown.onValueChanged.AddListener(OnDropDownChanged);
+
+        DebugObj(0);
     }
 
 
-    public void DebugObj()
+    public void OnDropDownChanged(int index)
     {
-        mapData = mapSession.Maps[index];
-        pointDatas = MapMetaManager.Load_PointCloud<PointData>();
+        DebugObj(index);
+    }
+
+    public void DebugObj(int index)
+    {
+        mapData = mapSession?.Maps[index];
         UpdatePointCloud(GetCurrentPointData);
 
-        GameObject controller = GameObject.Find("ObjParents");
+        controller = GameObject.Find("ObjParents");
         if (controller == null)
         {
             controller = new GameObject("ObjParents");
         }
-        foreach (var propInfo in mapData.Meta.Props)
+
+        for (int i = 0; i < controller.transform.childCount; i++)
+        {
+            Destroy(controller.transform.GetChild(i).gameObject);
+        }
+
+
+        foreach (var propInfo in mapData?.Meta.Props)
         {
             GameObject prop = null;
             foreach (var templet in PropCollection.Instance.Templets)
@@ -141,7 +160,7 @@ public class EditeMapController : MonoBehaviour
             prop.transform.localRotation = new Quaternion(propInfo.Rotation[0], propInfo.Rotation[1], propInfo.Rotation[2], propInfo.Rotation[3]);
             prop.transform.localScale = new UnityEngine.Vector3(propInfo.Scale[0], propInfo.Scale[1], propInfo.Scale[2]);
             prop.name = propInfo.Name;
-            mapData.Props.Add(prop);
+            mapData?.Props.Add(prop);
         }
     }
 
@@ -156,8 +175,6 @@ public class EditeMapController : MonoBehaviour
             PointCloudParticleSystem.Clear();
             return;
         }
-
-        Debug.Log(PointData.PointCloud.Count);
 
         if (!PointCloudParticleSystem)
         {
@@ -192,8 +209,7 @@ public class EditeMapController : MonoBehaviour
 
     public void SavePoint()
     {
-        Debug.Log(mapData.Controller.PointCloud.Count);
-        MapMetaManager.Save(mapData.Controller.PointCloud, mapData.Meta, MapMetaManager.FileNameType.Name);
+        MapMetaManager.Save(new PointData() { mapName = mapData.Meta.Map.Name, PointCloud = mapData.Controller.PointCloud });
     }
 
 

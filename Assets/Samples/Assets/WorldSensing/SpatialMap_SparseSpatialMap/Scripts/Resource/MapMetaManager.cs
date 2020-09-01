@@ -12,7 +12,6 @@ using System.Net;
 using System.Threading;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 using UnityEngine;
 using UnityEngine.Networking;
@@ -34,7 +33,7 @@ namespace SpatialMap_SparseSpatialMap
 
         public static List<MapMeta> LoadAll()
         {
-            Debug.Log(root);
+            //Debug.Log(root);
             var metas = new List<MapMeta>();
             var dirRoot = GetRootPath();
             try
@@ -83,20 +82,11 @@ namespace SpatialMap_SparseSpatialMap
 
 
 
-        public static bool Save<T>(T data, MapMeta meta, FileNameType fileNameType = FileNameType.ID)
+        public static bool Save(PointData data)
         {
             try
             {
-                switch (fileNameType)
-                {
-                    case FileNameType.ID:
-                        //File.WriteAllText(GetPathTxt(meta.Map.ID + "_PointCloud"), JsonUtility.ToJson(data, true));
-                        File.WriteAllText(GetPathTxt(meta.Map.ID + "_PointCloud"), JsonConvert.SerializeObject(data));
-                        break;
-                    case FileNameType.Name:
-                        File.WriteAllText(GetPathTxt(meta.Map.Name + "_PointCloud"), JsonConvert.SerializeObject(data));
-                        break;
-                }
+                File.WriteAllText(GetPathTxt(data.mapName + "_PointCloud"), JsonConvert.SerializeObject(data));
             }
             catch (System.Exception e)
             {
@@ -116,6 +106,7 @@ namespace SpatialMap_SparseSpatialMap
                 {
                     try
                     {
+                        //Debug.Log(path); 
                         datas.Add(JsonConvert.DeserializeObject<PointData>(File.ReadAllText(path)));
                     }
                     catch (System.Exception e)

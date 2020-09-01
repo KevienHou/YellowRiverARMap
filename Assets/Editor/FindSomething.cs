@@ -6,7 +6,7 @@ using UnityEditor;
 public class FindSomething : EditorWindow
 {
     [MenuItem("ThursdayFrame/Tools/找东西")]
-    static void AddWindow()
+    static void AddWindow_FindSomething()
     {
         //EditorWindow window = new EditorWindow();
         EditorWindow.GetWindow<FindSomething>(false, "找东西");
@@ -47,5 +47,5 @@ public class FindSomething : EditorWindow
 
 
 
-
 }
+

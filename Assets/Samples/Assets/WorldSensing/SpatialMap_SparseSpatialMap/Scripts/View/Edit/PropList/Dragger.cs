@@ -226,7 +226,7 @@ namespace SpatialMap_SparseSpatialMap
             {
                 touchControl.TurnOff();
             }
-            Debug.Log("                 clear last");
+            //Debug.Log("                 clear last");
 
         }
 
