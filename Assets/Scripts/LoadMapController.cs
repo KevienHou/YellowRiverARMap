@@ -26,6 +26,8 @@ public class LoadMapController : MonoBehaviour
 
     private VideoCameraDevice videoCamera;
 
+    public AudioSource aS;
+
     private void Awake()
     {
 #if UNITY_EDITOR
@@ -40,10 +42,16 @@ public class LoadMapController : MonoBehaviour
 
     private void Start()
     {
-  
+
         mapSession = new MapSession(mapWorker, MapMetaManager.LoadAll());
         mapSession.LoadMapMeta(mapTemp, false);
-
+        mapSession.CurrentMapLocalized += (MapData) =>
+        {
+            if (aS.isPlaying == false)
+            {
+                aS.PlayOneShot(aS.clip);
+            }
+        };
         videoCamera.DeviceOpened += () =>
         {
             if (videoCamera == null)

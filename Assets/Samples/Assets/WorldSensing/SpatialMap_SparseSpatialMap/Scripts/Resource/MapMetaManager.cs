@@ -11,7 +11,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 
-using Newtonsoft.Json;
+using Newtonsoft.Json; 
 
 using UnityEngine;
 using UnityEngine.Networking;
@@ -28,7 +28,6 @@ namespace SpatialMap_SparseSpatialMap
 
         private static readonly string root = Application.persistentDataPath + "/SparseSpatialMap";
         private static readonly string rootUrl = @"http://152.136.221.124:8012/YellowRiverARMap/SparseSpatialMap";
-
 
 
         public static List<MapMeta> LoadAll()

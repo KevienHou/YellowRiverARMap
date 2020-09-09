@@ -41,7 +41,7 @@ public class BuildMapController : MonoBehaviour
         SavePanel.SetActive(false);
 
         inputField = SavePanel.transform.Find("Panel/InputField").GetComponent<InputField>();
-        btnSave = SavePanel.transform.Find("Panel/Button").GetComponent<Button>();
+        btnSave = SavePanel.transform.Find("Panel/Back/Button").GetComponent<Button>();
 
         //注册追踪状态变化事件
         session.WorldRootController.TrackingStatusChanged += OnTrackingStatusChanged;
