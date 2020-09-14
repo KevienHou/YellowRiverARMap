@@ -71,3 +71,6 @@ MonoBehaviour:
   - Object: {fileID: 2928858983195604478, guid: 185b60f55e7401b46acefb08081f307f,
       type: 3}
     Icon: {fileID: 21300000, guid: 3e6fd496e3c604a7fa77df5b41c0e41d, type: 3}
+  - Object: {fileID: 9144181529805747458, guid: 9943ad354690b994c8870449d1bd3b2d,
+      type: 3}
+    Icon: {fileID: 21300000, guid: 5a7339c4929f5460eb39a334cd142e05, type: 3}
