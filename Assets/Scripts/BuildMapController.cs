@@ -16,8 +16,8 @@ public class BuildMapController : MonoBehaviour
     /// <summary>
     /// 保存按钮
     /// </summary>
-    private Button openSave;
-    private Button btnSave;
+    private Button btnSave; //保存按钮
+    private Button btnUpload;  //输入名字后上传
     private GameObject SavePanel;
     /// <summary>
     /// 显示文本
@@ -27,47 +27,47 @@ public class BuildMapController : MonoBehaviour
     private InputField inputField;
 
 
-
-
-    void Start()
+    private void Awake()
     {
         //稀疏空间地图初始
         session = FindObjectOfType<ARSession>();
         mapWorker = FindObjectOfType<SparseSpatialMapWorkerFrameFilter>();
         map = FindObjectOfType<SparseSpatialMapController>();
-
-
-        SavePanel = GameObject.Find("SavePanel");
-        SavePanel.SetActive(false);
-
+        SavePanel = GameObject.Find("MapName");
         inputField = SavePanel.transform.Find("Panel/InputField").GetComponent<InputField>();
-        btnSave = SavePanel.transform.Find("Panel/Back/Button").GetComponent<Button>();
+        btnUpload = SavePanel.transform.Find("Panel/Btn_Upload").GetComponent<Button>();
+        btnSave = GameObject.Find("Canvas/Map/Btn_SaveMap").GetComponent<Button>();
+        //显示文本
+        text = GameObject.Find("Canvas/Map/Text").GetComponent<Text>();
+    }
 
+    void Start()
+    {
+        map.MapWorker = mapWorker;
         //注册追踪状态变化事件
         session.WorldRootController.TrackingStatusChanged += OnTrackingStatusChanged;
+
+        SavePanel.SetActive(false);
         //初始化保存按钮
-        openSave = GameObject.Find("/Canvas/Button").GetComponent<Button>();
-        openSave.onClick.AddListener(OpenSavePanel);
-        btnSave.onClick.AddListener(Save);
-        openSave.interactable = false;
+        btnSave.onClick.AddListener(OpenUploadPanel);
+        btnUpload.onClick.AddListener(Save);
+        btnSave.interactable = false;
         if (session.WorldRootController.TrackingStatus == MotionTrackingStatus.Tracking)
         {
-            openSave.interactable = true;
+            btnSave.interactable = true;
         }
         else
         {
-            openSave.interactable = false;
+            btnSave.interactable = false;
         }
-        //初始化显示文本
-        text = GameObject.Find("/Canvas/Panel/Text").GetComponent<Text>();
     }
 
     /// <summary>
     /// 保存地图方法
     /// </summary>
-    private void OpenSavePanel()
+    private void OpenUploadPanel()
     {
-        openSave.interactable = false;
+        btnSave.interactable = false;
         SavePanel.SetActive(true);
     }
 
@@ -94,13 +94,13 @@ public class BuildMapController : MonoBehaviour
         }
         catch (Exception ex)
         {
-            openSave.interactable = true;
+            btnSave.interactable = true;
             text.text = "保存出错：" + ex.Message;
         }
     }
 
     /// <summary>
-    /// 保存地图反馈
+    /// 保存地图回调
     /// </summary>
     /// <param name="mapInfo">地图信息</param>
     /// <param name="isSuccess">成功标识</param>
@@ -119,7 +119,7 @@ public class BuildMapController : MonoBehaviour
         }
         else
         {
-            openSave.interactable = true;
+            btnSave.interactable = true;
             text.text = "地图保存出错：" + error;
         }
     }
@@ -140,12 +140,12 @@ public class BuildMapController : MonoBehaviour
     {
         if (status == MotionTrackingStatus.Tracking)
         {
-            openSave.interactable = true;
+            btnSave.interactable = true;
             text.text = "进入跟踪状态。";
         }
         else
         {
-            openSave.interactable = false;
+            btnSave.interactable = false;
             text.text = "退出跟踪状态。" + status.ToString();
         }
     }

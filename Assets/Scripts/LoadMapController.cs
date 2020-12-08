@@ -13,18 +13,22 @@ using UnityEngine.UI;
 
 public class LoadMapController : MonoBehaviour
 {
+    //截图功能
     public RawImage PreviewImage;
-    public List<Color32> color32s = new List<Color32>();
+    private Texture2D capturedImage;
 
+    //MapSession 加载地图相关
     public SparseSpatialMapController mapTemp;
     private MapSession mapSession;
     private ARSession session;
     private SparseSpatialMapWorkerFrameFilter mapWorker;
-    private Texture2D capturedImage;
 
-    List<SparseSpatialMapController> MapControllers = new List<SparseSpatialMapController>();
+    private VideoCameraDevice videoCamera; //修改对焦模式
 
-    private VideoCameraDevice videoCamera;
+    //手动加载
+    //public List<Color32> color32s = new List<Color32>();
+    //List<SparseSpatialMapController> MapControllers = new List<SparseSpatialMapController>();
+
 
     public AudioSource aS;
 
@@ -42,11 +46,11 @@ public class LoadMapController : MonoBehaviour
 
     private void Start()
     {
-
         mapSession = new MapSession(mapWorker, MapMetaManager.LoadAll());
         mapSession.LoadMapMeta(mapTemp, false);
         mapSession.CurrentMapLocalized += (MapData) =>
         {
+            //识别出来后播放一段声音 提示用户已经加载出来了
             if (aS.isPlaying == false)
             {
                 aS.PlayOneShot(aS.clip);
@@ -60,39 +64,42 @@ public class LoadMapController : MonoBehaviour
             }
             videoCamera.FocusMode = CameraDeviceFocusMode.Continousauto;
         };
-
     }
 
-    private void LoadMeta(List<MapMeta> mapMetas)
-    {
+    ///// <summary>
+    ///// 手动加载 meta 信息   暂时没有用，此时使用的时 mapSession 来加载地图信息
+    ///// </summary>
+    //private string mapName;
+    //private void LoadMeta(List<MapMeta> mapMetas)
+    //{
 
-        int i = 0;
-        foreach (var item in mapMetas)
-        {
-            var tempController = Instantiate(mapTemp).GetComponent<SparseSpatialMapController>();
+    //    int i = 0;
+    //    foreach (var item in mapMetas)
+    //    {
+    //        var tempController = Instantiate(mapTemp).GetComponent<SparseSpatialMapController>();
 
-            tempController.SourceType = SparseSpatialMapController.DataSource.MapManager;
-            tempController.MapManagerSource.ID = item.Map.ID;
-            tempController.MapManagerSource.Name = item.Map.Name;
-            tempController.MapWorker = mapWorker;
+    //        tempController.SourceType = SparseSpatialMapController.DataSource.MapManager;
+    //        tempController.MapManagerSource.ID = item.Map.ID;
+    //        tempController.MapManagerSource.Name = item.Map.Name;
+    //        tempController.MapWorker = mapWorker;
 
-            tempController.MapLoad += (arg1, arg2, arg3) =>
-            {
-                Debug.Log("\t下载信息：" + (arg2 ? "成功" : "失败：" + arg3) + Environment.NewLine +
-                    "\t名称" + arg1.Name + Environment.NewLine +
-                    "\tID" + arg1.ID + Environment.NewLine);
-                mapName = arg1.Name;
-            };
-            tempController.MapLocalized += () => { Debug.Log("\t定位成功: " + mapName); };
-            tempController.MapStopLocalize += () => { Debug.Log("\t定位停止 " + mapName); };
-            tempController.PointCloudParticleParameter.StartColor = color32s[i];
-            MapControllers.Add(tempController);
-            i++;
-        }
-        mapWorker.Localizer.startLocalization();
-    }
+    //        tempController.MapLoad += (arg1, arg2, arg3) =>
+    //        {
+    //            Debug.Log("\t下载信息：" + (arg2 ? "成功" : "失败：" + arg3) + Environment.NewLine +
+    //                "\t名称" + arg1.Name + Environment.NewLine +
+    //                "\tID" + arg1.ID + Environment.NewLine);
+    //            mapName = arg1.Name;
+    //        };
+    //        tempController.MapLocalized += () => { Debug.Log("\t定位成功: " + mapName); };
+    //        tempController.MapStopLocalize += () => { Debug.Log("\t定位停止 " + mapName); };
+    //        tempController.PointCloudParticleParameter.StartColor = color32s[i];
+    //        MapControllers.Add(tempController);
+    //        i++;
+    //    }
+    //    mapWorker.Localizer.startLocalization();
+    //}
 
-    private string mapName;
+
 
     public void BackMain()
     {
@@ -123,6 +130,9 @@ public class LoadMapController : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// 截图
+    /// </summary>
     public void Snapshot()
     {
         var oneShot = Camera.main.gameObject.AddComponent<OneShot>();
@@ -138,7 +148,10 @@ public class LoadMapController : MonoBehaviour
         });
     }
 
-
+    /// <summary>
+    /// 存储
+    /// </summary>
+    /// <param name="texture"></param>
     public void SavePic(RawImage texture)
     {
 

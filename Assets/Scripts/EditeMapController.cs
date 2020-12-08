@@ -57,10 +57,6 @@ public class EditeMapController : MonoBehaviour
                 mapData.Props.Remove(gameObj);
             }
         };
-
-
-
-
     }
 
 
@@ -70,12 +66,10 @@ public class EditeMapController : MonoBehaviour
         mapSession = new MapSession(mapWorker, MapMetaManager.LoadAll());
         mapSession.LoadMapMeta(mapTemp, true);
 
-        //mapSession.CurrentMapLoad = (mapData) => { };
         mapSession.CurrentMapLocalized = (mapData) =>
         {
             this.mapData = mapData;
         };
-        //mapSession.CurrentMapStopLocalized = (mapData) => { };
         videoCamera.DeviceOpened += () =>
         {
             if (videoCamera == null)
